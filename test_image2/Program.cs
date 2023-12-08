@@ -138,5 +138,16 @@ namespace test_image2
             f.Height = img.Height;
             f.Show();
         }
+
+        /// <summary>
+        /// Calcule la distance euclidienne carrée entre P et Q
+        /// </summary>
+        /// <param name="Xp">Coordonnées de P (tableau de taille 2)</param>
+        /// <param name="Xq">Coordonnées de Q (tableau de taille 2)</param>
+        /// <returns>Distance euclidienne carrée entre P et Q</returns>
+        public static int DistEuclidienne(int[] Xp, int[] Xq)
+        {
+            return (int)(Math.Pow(Xp[0] - Xq[0], 2) + Math.Pow(Xp[1] - Xq[1], 2));
+        }
     }
 }
