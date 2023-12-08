@@ -21,8 +21,6 @@ namespace test_image2
             int[,] tabImage = TabFromFile(imagePath);
 
             //Ajoutez ici d'autres traitements ou analyse du tableau
-            
-            tabImage = CarteDistEucBF(tabImage);
 
             Affiche_image(tabImage);
 
@@ -139,86 +137,6 @@ namespace test_image2
             f.Width = img.Width;
             f.Height = img.Height;
             f.Show();
-        }
-
-        public static int MinTab(int[,] Xtab)
-        {
-            int min = Xtab[0,0];
-
-            for (int i = 0; i < Xtab.GetLength(0); i++)
-            {
-                for (int j = 0; j < Xtab.GetLength(1); j++)
-                {
-                    if (Xtab[i,j] < min)
-                        min = Xtab[i,j];
-                }
-            }
-
-            return min;
-        }
-
-        public static int DistEuc(int xP, int yP, int xQ, int yQ)
-        {
-            return (int)Math.Pow(xQ - xP, 2) + (int)Math.Pow(yQ - yP, 2);
-        }
-
-        public static int[,] BackgroundImg(int[,] Xtab)
-        {
-            int[,] bg = new int[Xtab.GetLength(0), Xtab.GetLength(1)];
-
-            for (int i = 0;  i < Xtab.GetLength(0); i++)
-            {
-                for (int j = 0;  j < Xtab.GetLength(1);  j++)
-                {
-                    if (Xtab[i, j] == 255)
-                    {
-                        bg[i, j] = 1;
-                    } else
-                    {
-                        bg[i, j] = 0;
-                    }
-                }
-            }
-
-            return bg;
-        }
-
-        public static int TransformeDist(int xP, int yP, int[,] bg)
-        {
-            int[,] trans = new int[bg.GetLength(0), bg.GetLength(1)];
-            for (int i = 0; i <  bg.GetLength(0); i++)
-            {
-                for (int j = 0;j < bg.GetLength(1); j++)
-                {
-                    trans[i, j] = DistEuc(xP, yP, i, j);
-                }
-            }
-            return MinTab(trans);
-        }
-
-        public static int[,] CarteDistEucBF(int[,] Xtab)
-        {
-            int[,] card = new int[Xtab.GetLength(0), Xtab.GetLength(1)];
-            int[,] bgImg = BackgroundImg(Xtab);
-
-            for (int i = 0; i < Xtab.GetLength(0); i++)
-            {
-                for (int j = 0; j < Xtab.GetLength(1); j++)
-                {
-                    if (bgImg[i, j] == 1)
-                    {
-                        card[i, j] = 255;
-                        Console.WriteLine("255");
-                    } else
-                    {
-                        int trans = TransformeDist(i, j, bgImg);
-                        card[i, j] = trans;
-                        Console.WriteLine(trans);
-                    }
-                }
-            }
-
-            return card;
         }
     }
 }
