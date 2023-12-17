@@ -10,12 +10,12 @@ namespace test_image2
         static void Main(string[] args)
         {
             // Spécifie le chemin d'accès à votre image BMP
-            string imagePath = "../../images/imagesReelles/2469s.bmp";
+            string imagePath = "../../images/img_coeur.bmp";
 
             // Transforme l'image en tableau 2D
             int[,] tabImage = TabFromFile(imagePath);
 
-            int[,] carte = BruteForceSEDT(tabImage); // calcul de la SEDT
+            int[,] carte = BruteForceSEDT(tabImage); // calcul de la SEDT (méthode bruteforce)
 
             Affiche_image(carte);
             SaveImage(carte, "../../images/imagesReelles/SEDT/2469s-SEDT.bmp");
@@ -266,7 +266,7 @@ namespace test_image2
         }
 
         /// <summary>
-        /// Calcule la SEDT
+        /// Calcule la SEDT (méthode bruteforce)
         /// </summary>
         /// <param name="Xtab">Image</param>
         /// <returns>Carte des distances</returns>
@@ -291,9 +291,7 @@ namespace test_image2
                 }
             }
 
-            double ratio = 255 / Max(carte);
-
-            Normalize(carte, ratio);
+            Normalize(carte, 255 / Max(carte));
             return carte;
         }
     }
