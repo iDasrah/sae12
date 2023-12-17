@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Linq;
 
 namespace test_image2
 {
@@ -9,18 +10,14 @@ namespace test_image2
         static void Main(string[] args)
         {
             // Spécifie le chemin d'accès à votre image BMP
-            string imagePath = "../../images/img_coeur.bmp";
+            string imagePath = "../../images/imagesReelles/2469s.bmp";
 
             // Transforme l'image en tableau 2D
             int[,] tabImage = TabFromFile(imagePath);
 
-            DateTime before = DateTime.Now;
             int[,] carte = BruteForceSEDT(tabImage); // calcul de la SEDT
 
-            int seconds = DateTime.Now.Second - before.Second;
-            Console.WriteLine($"Exécuté en {seconds} secondes.");
-
-            //Affiche_image(BackgroundImg(tabImage));
+            Affiche_image(carte);
             SaveImage(carte, "../../images/imagesReelles/SEDT/2469s-SEDT.bmp");
 
             Console.ReadKey();
@@ -174,21 +171,42 @@ namespace test_image2
         }
 
         /// <summary>
-        /// En fonction d'un seuil minimal et maximal, corrige le tableau (si x < min, x = min, si x > max, x = max)
+        /// Transforme la carte de distances en une image de la forme en niveux de gris
         /// </summary>
         /// <param name="Xtab">Tableau</param>
-        /// <param name="Xmin">Seuil minimal</param>
-        /// <param name="Xmax">Seuil maximal</param>
-        public static void Normalize(int[,] Xtab, int Xmin, int Xmax)
+        /// <param name="ratio"></param>
+        public static void Normalize(int[,] Xtab, double ratio)
         {
             for (int i = 0; i < Xtab.GetLength(0); i++)
             {
                 for (int j = 0; j < Xtab.GetLength(1); j++)
                 {
-                    if (Xtab[i, j] > Xmax) Xtab[i, j] = Xmax;
-                    else if (Xtab[i, j] < Xmin) Xtab[i, j] = Xmin;
+                    int px = Xtab[i, j]; 
+                    if (px == -1)
+                        Xtab[i, j] = 255;
+                    else
+                        Xtab[i, j] = (int)(px * ratio);
                 }
             }
+        }
+
+        /// <summary>
+        /// Retourne la valeur maximale du tableau
+        /// </summary>
+        /// <param name="Xtab">Tableau</param>
+        /// <returns>Valeur maximale</returns>
+        public static double Max(int[,] Xtab)
+        {
+            int max = int.MinValue;
+            for (int i = 0; i < Xtab.GetLength(0); i++)
+            {
+                for (int j = 0; j < Xtab.GetLength(1); j++)
+                {
+                    if (Xtab[i, j] > max) max = Xtab[i, j];
+                }
+            }
+
+            return max;
         }
 
         /// <summary>
@@ -263,16 +281,19 @@ namespace test_image2
             
             for (int i = 0; i < height; i++)
             {
-                for (int j = 0;j < width; j++)
+                for (int j = 0; j < width; j++)
                 {
-                    if (bg[i, j] == 0) carte[i, j] = 255;
+                    if (bg[i, j] == 0) carte[i, j] = -1;
                     else
                         carte[i, j] = TransfoDist(new int[2] { i, j }, bg);
                     progress++;
                     PrintProgress(progress, height * width);
                 }
             }
-            Normalize(carte, 0, 255); // certaines valeurs de distance peuvent être supérieures à 255
+
+            double ratio = 255 / Max(carte);
+
+            Normalize(carte, ratio);
             return carte;
         }
     }
