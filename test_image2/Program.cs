@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Drawing;
+using System.Security.Policy;
 using System.Windows.Forms;
-using System.Linq;
 
 namespace test_image2
 {
@@ -10,15 +10,16 @@ namespace test_image2
         static void Main(string[] args)
         {
             // Spécifie le chemin d'accès à votre image BMP
-            string imagePath = "../../images/img_coeur.bmp";
+            string imagePath = "../../images/imagesReelles/coeur.bmp";
 
             // Transforme l'image en tableau 2D
             int[,] tabImage = TabFromFile(imagePath);
 
-            int[,] carte = BruteForceSEDT(tabImage); // calcul de la SEDT (méthode bruteforce)
+            // int[,] carte = BruteForceSEDT(tabImage); // calcul de la SEDT (méthode bruteforce)
+            int[,] carte = OptiSEDt(tabImage);
 
             Affiche_image(carte);
-            SaveImage(carte, "../../images/imagesReelles/SEDT/2469s-SEDT.bmp");
+            SaveImage(carte, "../../images/imagesReelles/SEDT/coeur.bmp");
 
             Console.ReadKey();
 
@@ -293,6 +294,70 @@ namespace test_image2
 
             Normalize(carte, 255 / Max(carte));
             return carte;
+        }
+
+        /// <summary>
+        /// Initialise la carte de distance à l'étape 0 de la méthode optimisée.
+        /// (c-à-d les pixels du fond à 0, le reste à une valeur maximale).
+        /// </summary>
+        /// <param name="Xtab">Tableau</param>
+        /// <returns>Carte de distances</returns>
+        public static int[,] InitCard(int[,] Xtab)
+        {
+            int[,] card = CloneTabEmpty(Xtab);
+
+            for (int i = 0; i < Xtab.GetLength(0); i++)
+            {
+                for(int j = 0;j < Xtab.GetLength(1); j++)
+                {
+                    if (Xtab[i, j] == 255) card[i, j] = -1;
+                    else card[i, j] = int.MaxValue;
+                }
+            }
+
+            return card;
+        }
+
+        public static int[,] OptiSEDt(int[,] Xtab)
+        {
+            int[,] card = InitCard(Xtab);
+            int width = card.GetLength(1);
+            int height = card.GetLength(0);
+
+            // propagation verticale
+            for (int y = 0; y < width; y++)
+            {
+                int step = 1;
+
+                // de haut en bas
+                for (int x = 1; x < height; x++)
+                {
+                    if (card[x, y] > card[x - 1, y] + step)
+                    {
+                        card[x, y] = card[x - 1, y] + step;
+                        step += 2;
+                    }
+                    else step = 1;
+                }
+
+                // de bas en haut
+                for (int x = height - 2; x >= 0; x--)
+                {
+                    if (card[x, y] > card[x + 1, y] + step)
+                    {
+                        card[x, y] = card[x + 1, y] + step;
+                        step += 2;
+                    }
+                    else step = 1;
+                }
+            }
+
+            // propagation horizontale
+
+            Normalize(card, 255 / Max(card));
+
+            return card;
+
         }
     }
 }
