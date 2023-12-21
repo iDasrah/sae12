@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Security.Policy;
 using System.Windows.Forms;
+using System.Linq;
 
 namespace test_image2
 {
@@ -10,16 +11,17 @@ namespace test_image2
         static void Main(string[] args)
         {
             // Spécifie le chemin d'accès à votre image BMP
-            string imagePath = "../../images/imagesReelles/coeur.bmp";
+            string imagePath = "../../images/imagesReelles/2469s.bmp";
 
             // Transforme l'image en tableau 2D
             int[,] tabImage = TabFromFile(imagePath);
+            BlackWhite(tabImage);
 
             // int[,] carte = BruteForceSEDT(tabImage); // calcul de la SEDT (méthode bruteforce)
             int[,] carte = OptiSEDt(tabImage);
 
             Affiche_image(carte);
-            SaveImage(carte, "../../images/imagesReelles/SEDT/coeur.bmp");
+            SaveImage(carte, "../../images/imagesReelles/SEDT/2469s-SEDT.bmp");
 
             Console.ReadKey();
 
@@ -191,6 +193,21 @@ namespace test_image2
             }
         }
 
+        public static void BlackWhite(int[,] Xtab)
+        {
+            for (int i = 0; i < Xtab.GetLength(0); i++)
+            {
+                for (int j = 0; j < Xtab.GetLength(1); j++)
+                {
+                    int px = Xtab[i, j];
+                    if (px < 128)
+                        Xtab[i, j] = 0;
+                    else
+                        Xtab[i, j] = 255;
+                }
+            }
+        }
+
         /// <summary>
         /// Retourne la valeur maximale du tableau
         /// </summary>
@@ -340,6 +357,8 @@ namespace test_image2
                     else step = 1;
                 }
 
+                step = 1;
+
                 // de bas en haut
                 for (int x = height - 2; x >= 0; x--)
                 {
@@ -353,6 +372,27 @@ namespace test_image2
             }
 
             // propagation horizontale
+            for (int x = 0;  x < height; x++)
+            {
+                int[] row = new int[width];
+
+                for (int y = 0; y < width; y++)
+                    row[y] = card[x, y];
+
+                for (int y = 0; y < width; y++)
+                {
+                    int min = row[y];
+
+                    for (int z  = 0; z < width; z++)
+                    {
+                        int dist = row[z] + (z - y) * (z - y);
+
+                        if (dist < min) min = dist;
+                    }
+
+                    card[x, y] = min;
+                }
+            }
 
             Normalize(card, 255 / Max(card));
 
