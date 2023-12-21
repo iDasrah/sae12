@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 using System.Linq;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace test_image2
 {
@@ -10,15 +11,16 @@ namespace test_image2
         static void Main(string[] args)
         {
             // Spécifie le chemin d'accès à votre image BMP
-            string imagePath = "../../images/img_coeur.bmp";
+            string imagePath = "../../images/imagesReelles/img_coeur.bmp";
 
             // Transforme l'image en tableau 2D
             int[,] tabImage = TabFromFile(imagePath);
+            BlackWhite(tabImage);
 
             int[,] carte = BruteForceSEDT(tabImage); // calcul de la SEDT (méthode bruteforce)
 
             Affiche_image(carte);
-            SaveImage(carte, "../../images/imagesReelles/SEDT/2469s-SEDT.bmp");
+            SaveImage(carte, "../../images/imagesReelles/SEDT/img_coeur-SEDT.bmp");
 
             Console.ReadKey();
 
@@ -186,6 +188,21 @@ namespace test_image2
                         Xtab[i, j] = 255;
                     else
                         Xtab[i, j] = (int)(px * ratio);
+                }
+            }
+        }
+
+        public static void BlackWhite(int[,] Xtab)
+        {
+            for (int i = 0; i < Xtab.GetLength(0); i++)
+            {
+                for (int j = 0; j < Xtab.GetLength(1); j++)
+                {
+                    int px = Xtab[i, j];
+                    if (px < 128)
+                        Xtab[i, j] = 0;
+                    else
+                        Xtab[i, j] = 255;
                 }
             }
         }
