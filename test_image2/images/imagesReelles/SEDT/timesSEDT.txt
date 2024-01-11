@@ -1,0 +1,2 @@
+Image : 2469s | Temps bruteforce : 313,01s | Temps optimisé : 0,062s
+

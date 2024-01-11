@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Drawing;
-using System.Security.Policy;
 using System.Windows.Forms;
-using System.Linq;
+using System.IO;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace test_image2
 {
@@ -10,21 +11,75 @@ namespace test_image2
     {
         static void Main(string[] args)
         {
-            // Spécifie le chemin d'accès à votre image BMP
-            string imagePath = "../../images/imagesReelles/2469s.bmp";
+            TestAllImagesSEDT("../../images/imagesReelles");
+            var dirsTheor = Directory.EnumerateDirectories("../../images/imagesTheoriques");
 
-            // Transforme l'image en tableau 2D
-            int[,] tabImage = TabFromFile(imagePath);
-            BlackWhite(tabImage);
-
-            // int[,] carte = BruteForceSEDT(tabImage); // calcul de la SEDT (méthode bruteforce)
-            int[,] carte = OptiSEDt(tabImage);
-
-            Affiche_image(carte);
-            SaveImage(carte, "../../images/imagesReelles/SEDT/2469s-SEDT.bmp");
+            foreach (var dir in dirsTheor)
+            {
+                TestAllImagesSEDT(dir);
+            }
 
             Console.ReadKey();
 
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dir"></param>
+        static void TestAllImagesSEDT(string dir)
+        {
+            var imgFiles = Directory.EnumerateFiles(dir, "*.bmp"); // extrais les fichiers contenus dans le dossier
+            double[] time = new double[2] { -1, -1 }; // stocker les futurs temps
+
+            foreach (string imgPath in imgFiles)
+            {
+                int[,] imgTab = TabFromFile(imgPath);
+                AvoidNoise(imgTab);
+                
+                string fileName = Path.GetFileNameWithoutExtension(imgPath); // nom de l'image
+                string savePath = Path.Combine(dir + "/SEDT/Opti", fileName + "-SEDT-Opti.bmp"); // chemin de sauvegarde
+
+                if (!File.Exists(savePath))
+                {
+                    Stopwatch sw = new Stopwatch(); // pour calculer le temps d'exécution
+                    sw.Start();
+
+                    int[,] card = OptiSEDT(imgTab);
+                    sw.Stop();
+
+                    time[1] = Math.Round(sw.Elapsed.TotalSeconds, 3); // ajout des perfs
+
+                    SaveImage(card, savePath);
+                }
+
+                savePath = Path.Combine(dir + "/SEDT/BruteForce", fileName + "-SEDT-BF.bmp");
+
+                if (!File.Exists(savePath))
+                {
+                    Stopwatch sw = new Stopwatch();
+                    sw.Start();
+
+                    int[,] card = BruteForceSEDT(imgTab);
+                    sw.Stop();
+
+                    time[0] = Math.Round(sw.Elapsed.TotalSeconds, 2);
+
+                    SaveImage(card, savePath);
+                }
+
+                if (time[0] != -1 && time[1] != -1)
+                    WriteTime(dir + "/SEDT/timesSEDT.txt", fileName, time);
+            }
+        }
+
+        static void WriteTime(string file, string img, double[] time)
+        {
+            string txt = $"Image : {img} | Temps bruteforce : {time[0]}s | Temps optimisé : {time[1]}s\n";
+
+            StreamWriter sw = new StreamWriter(file, true);
+            sw.WriteLine(txt);
+            sw.Close();
         }
 
         // Definition de la fonction TabFromFile : cree le tableau 2D stockant la valeur des pixels de l'image situe au bout du xhemin Xfile
@@ -111,7 +166,7 @@ namespace test_image2
 
             IntToImage(Xtab, img);
             img.Save(Xfile);
-            Console.WriteLine("Saugarde dans le fichier : " + Xfile);
+            Console.WriteLine("Sauvegarde dans le fichier : " + Xfile);
         }
 
         // Definition de la fonction affiche_image : affiche l'image dont la valeur des pixels est situee dans Xtab
@@ -193,7 +248,11 @@ namespace test_image2
             }
         }
 
-        public static void BlackWhite(int[,] Xtab)
+        /// <summary>
+        /// Supprime le bruit sur les images
+        /// </summary>
+        /// <param name="Xtab"></param>
+        public static void AvoidNoise(int[,] Xtab)
         {
             for (int i = 0; i < Xtab.GetLength(0); i++)
             {
@@ -335,7 +394,12 @@ namespace test_image2
             return card;
         }
 
-        public static int[,] OptiSEDt(int[,] Xtab)
+        /// <summary>
+        /// Calcule la SEDT (méthode optimisée)
+        /// </summary>
+        /// <param name="Xtab">Image</param>
+        /// <returns>Carte des distances</returns>
+        public static int[,] OptiSEDT(int[,] Xtab)
         {
             int[,] card = InitCard(Xtab);
             int width = card.GetLength(1);
@@ -397,6 +461,11 @@ namespace test_image2
             Normalize(card, 255 / Max(card));
 
             return card;
+
+        }
+
+        public static void BoulesMaxBF()
+        {
 
         }
     }
