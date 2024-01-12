@@ -1,2 +1,4 @@
-Image : 2469s | Temps bruteforce : 313,01s | Temps optimisé : 0,062s
+Image : coeur | Temps bruteforce : 4,15s | Temps optimisé : 0,005s
+
+
 
