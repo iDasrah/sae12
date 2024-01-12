@@ -9,15 +9,58 @@ namespace test_image2
 {
     class Program
     {
+
+        public struct Circle
+        {
+            public Pixel center;
+            public int r;
+
+            public Circle(int x, int y, int r)
+            {
+                this.center = new Pixel(x, y);
+                this.r = r;
+            }
+
+            public override string ToString()
+            {
+                return $"{center.ToString()} | r² = {Math.Pow(r, 2)}";
+            }
+        }
+
+        public struct Pixel
+        {
+            public int x;
+            public int y;
+
+            public Pixel(int x, int y)
+            {
+                this.x = x;
+                this.y = y;
+            }
+
+            public override string ToString()
+            {
+                return $"({x}, {y})";
+            }
+        }
+
         static void Main(string[] args)
         {
-            TestAllImagesSEDT("../../images/imagesReelles");
-            var dirsTheor = Directory.EnumerateDirectories("../../images/imagesTheoriques");
+            // TestAllImagesSEDT("../../images/imagesReelles");
+            // var dirsTheor = Directory.EnumerateDirectories("../../images/imagesTheoriques");
 
-            foreach (var dir in dirsTheor)
-            {
-                TestAllImagesSEDT(dir);
-            }
+            // foreach (var dir in dirsTheor)
+            // {
+            //     TestAllImagesSEDT(dir);
+            // }
+
+            string file = "../../images/imagesReelles/coeur.bmp";
+            int[,] imgTab = TabFromFile(file);
+            AvoidNoise(imgTab);
+
+
+            List<Circle> list = CircleListBF(imgTab);
+            SaveCircles(list, "../../images/imagesReelles/coeur.txt");
 
             Console.ReadKey();
 
@@ -195,9 +238,9 @@ namespace test_image2
         /// <param name="Xp">Coordonnées de P (tableau de taille 2)</param>
         /// <param name="Xq">Coordonnées de Q (tableau de taille 2)</param>
         /// <returns>Distance euclidienne carrée entre P et Q</returns>
-        public static int DistEuclidienne(int[] Xp, int[] Xq)
+        public static int DistEuclidienne(Pixel Xp, Pixel Xq)
         {
-            return (int)(Math.Pow(Xp[0] - Xq[0], 2) + Math.Pow(Xp[1] - Xq[1], 2));
+            return (int)(Math.Pow(Xp.x - Xq.x, 2) + Math.Pow(Xp.y - Xq.y, 2));
         }
 
         /// <summary>
@@ -302,7 +345,7 @@ namespace test_image2
         /// <param name="Xp">Pixel P</param>
         /// <param name="Xbg">Fond</param>
         /// <returns>Transformée en distance</returns>
-        public static int TransfoDist(int[] Xp, int[,] Xbg)
+        public static int TransfoDist(Pixel Xp, int[,] Xbg)
         {
             int minDist = int.MaxValue;
 
@@ -312,7 +355,7 @@ namespace test_image2
                 {
                     if (Xbg[i, j] == 0)
                     {
-                        int dist = DistEuclidienne(Xp, new int[2] { i, j });
+                        int dist = DistEuclidienne(Xp, new Pixel(i, j));
                         if (dist < minDist) minDist = dist;
                     }
                 }
@@ -362,7 +405,7 @@ namespace test_image2
                 {
                     if (bg[i, j] == 0) carte[i, j] = -1;
                     else
-                        carte[i, j] = TransfoDist(new int[2] { i, j }, bg);
+                        carte[i, j] = TransfoDist(new Pixel(i, j), bg);
                     progress++;
                     PrintProgress(progress, height * width);
                 }
@@ -464,9 +507,89 @@ namespace test_image2
 
         }
 
-        public static void BoulesMaxBF()
+        public static bool IsMaxCircle(int[,] Xtab, Circle circle)
         {
+            Pixel center = circle.center;
+            int width = Xtab.GetLength(1);
+            int height = Xtab.GetLength(0);
 
+            for (int x = 0; x < height; x++)
+            {
+                for (int y = 0; y < width; y++)
+                {
+                    if (Xtab[x, y] != 255 && !(x == center.x && y == center.y))
+                    {
+                        Circle circle2 = FindMaxCircle(Xtab, new Pixel(x, y));
+
+                        if (DistEuclidienne(center, new Pixel(x, y)) < Math.Pow(circle2.r, 2))
+                            return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        public static Circle FindMaxCircle(int[,] Xtab, Pixel center)
+        {
+            Circle circle = new Circle(center.x, center.y, 0);
+
+            while (CircleInShape(Xtab, circle))
+            {
+                circle.r++;
+            }
+
+            return circle;
+        }
+
+        public static bool CircleInShape(int[,] Xtab, Circle circle)
+        {
+            Pixel center = circle.center;
+            for (int x = center.x - circle.r; x <= center.x + circle.r; x++)
+            {
+                for (int y = center.y - circle.r; y <= center.y + circle.r; y++)
+                {
+                    if (DistEuclidienne(center, new Pixel(x, y)) > Math.Pow(circle.r, 2) || Xtab[x, y] != 0)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        public static List<Circle> CircleListBF(int[,] Xtab)
+        {
+            int width = Xtab.GetLength(1);
+            int height = Xtab.GetLength(0);
+            int progress = 0;
+
+            List<Circle> list = new List<Circle>();
+
+            for (int x = 0; x < height; x++)
+            {
+                for (int y = 0; y < width; y++)
+                {
+                    if (Xtab[x, y] != 0) continue;
+
+                    Circle circle = FindMaxCircle(Xtab, new Pixel(x, y));
+                    if (IsMaxCircle(Xtab, circle))
+                        list.Add(circle);
+                    progress++;
+                    PrintProgress(progress, height * width);
+                }
+            }
+
+            return list;
+        }
+
+        public static void SaveCircles(List<Circle> list, string file)
+        {
+            StreamWriter sw = new StreamWriter(file, true);
+
+            foreach (Circle circle in list)
+            {
+                sw.WriteLine(circle.ToString());
+            }
+
+            sw.Close();
         }
     }
 }
