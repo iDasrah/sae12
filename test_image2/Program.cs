@@ -506,7 +506,13 @@ namespace test_image2
             return card;
 
         }
-
+        
+        /// <summary>
+        /// Vérifie si une boule est maximale ou non
+        /// </summary>
+        /// <param name="Xtab">image</param>
+        /// <param name="circle">boule</param>
+        /// <returns>true / false</returns>
         public static bool IsMaxCircle(int[,] Xtab, Circle circle)
         {
             Pixel center = circle.center;
@@ -517,11 +523,11 @@ namespace test_image2
             {
                 for (int y = 0; y < width; y++)
                 {
-                    if (Xtab[x, y] != 255 && !(x == center.x && y == center.y))
+                    if (Xtab[x, y] == 0 && !(x == center.x && y == center.y)) // si on est dans la forme et que le pixel n'est pas le centre de notre cercle,
                     {
-                        Circle circle2 = FindMaxCircle(Xtab, new Pixel(x, y));
+                        Circle circle2 = FindMaxCircle(Xtab, new Pixel(x, y)); // on crée un autre cercle
 
-                        if (DistEuclidienne(center, new Pixel(x, y)) < Math.Pow(circle2.r, 2))
+                        if (DistEuclidienne(center, new Pixel(x, y)) < Math.Pow(circle2.r, 2)) // si la distance entre le centre de notre cercle et le centre de l'autre cercle est inférieure au carré de son rayon
                             return false;
                     }
                 }
@@ -529,32 +535,55 @@ namespace test_image2
             return true;
         }
 
+        /// <summary>
+        /// Calcul du rayon maximal d'un cercle dans la forme
+        /// </summary>
+        /// <param name="Xtab">image</param>
+        /// <param name="center">centre du cercle</param>
+        /// <returns>nouvelle boule</returns>
         public static Circle FindMaxCircle(int[,] Xtab, Pixel center)
         {
-            Circle circle = new Circle(center.x, center.y, 0);
+            Circle circle = new Circle(center.x, center.y, 0); // nouveau cercle de rayon 0
 
-            while (CircleInShape(Xtab, circle))
+            while (CircleInShape(Xtab, circle)) // tant que le cercle est dans la forme,
             {
-                circle.r++;
+                circle.r++; // on incrémente le rayon.
             }
 
             return circle;
         }
 
+        /// <summary>
+        /// Vérifie si la boule est dans la forme
+        /// </summary>
+        /// <param name="Xtab">image</param>
+        /// <param name="circle">boule</param>
+        /// <returns>true / false</returns>
         public static bool CircleInShape(int[,] Xtab, Circle circle)
         {
             Pixel center = circle.center;
+            
+            // parcours du cercle
             for (int x = center.x - circle.r; x <= center.x + circle.r; x++)
             {
                 for (int y = center.y - circle.r; y <= center.y + circle.r; y++)
                 {
-                    if (DistEuclidienne(center, new Pixel(x, y)) > Math.Pow(circle.r, 2) || Xtab[x, y] != 0)
+                    // si on sort de la forme
+                    if (Xtab[x, y] != 0) 
                         return false;
                 }
             }
             return true;
         }
 
+        /// <summary>
+        /// Retourne la liste des boules maximales dans une force (méthode bruteforce)
+        /// !!!!!!!!! NE FONCTIONNE PAS !!!!!!!!!!!
+        /// L'ERREUR POURRAIT SE RETROUVER DANS N'IMPORTE QUELLE FONCTION LIEE AUX BOULES
+        /// JE N'AI PAS ENCORE TROUVE
+        /// </summary>
+        /// <param name="Xtab">image</param>
+        /// <returns>liste de boules maximales</returns>
         public static List<Circle> CircleListBF(int[,] Xtab)
         {
             int width = Xtab.GetLength(1);
@@ -569,8 +598,8 @@ namespace test_image2
                 {
                     if (Xtab[x, y] != 0) continue;
 
-                    Circle circle = FindMaxCircle(Xtab, new Pixel(x, y));
-                    if (IsMaxCircle(Xtab, circle))
+                    Circle circle = FindMaxCircle(Xtab, new Pixel(x, y)); // nouveau cercle
+                    if (IsMaxCircle(Xtab, circle)) // si c'est une boule maximale, on l'ajoute à la liste
                         list.Add(circle);
                     progress++;
                     PrintProgress(progress, height * width);
@@ -580,6 +609,11 @@ namespace test_image2
             return list;
         }
 
+        /// <summary>
+        /// Enregistre les boules maximales dans un fichier
+        /// </summary>
+        /// <param name="list">liste des boules</param>
+        /// <param name="file">fichier de sauvegarde</param>
         public static void SaveCircles(List<Circle> list, string file)
         {
             StreamWriter sw = new StreamWriter(file, true);
