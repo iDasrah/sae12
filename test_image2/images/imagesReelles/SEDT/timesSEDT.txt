@@ -1,4 +1,0 @@
-Image : coeur | Temps bruteforce : 4,15s | Temps optimisé : 0,005s
-
-
-
