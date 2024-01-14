@@ -1,0 +1,14 @@
+Image : 681s | Temps bruteforce : 1361,72s | Temps optimisé : 0,102s
+
+Image : cheval001 | Temps bruteforce : 144,58s | Temps optimisé : 0,057s
+
+Image : Chien | Temps bruteforce : 2054,04s | Temps optimisé : 0,129s
+
+Image : cleMolette | Temps bruteforce : 3343,54s | Temps optimisé : 0,178s
+
+Image : cleSol | Temps bruteforce : 2681,08s | Temps optimisé : 0,158s
+
+Image : coeur | Temps bruteforce : 3,57s | Temps optimisé : 0,001s
+
+Image : E1 | Temps bruteforce : 665,6s | Temps optimisé : 0,066s
+
